@@ -20,6 +20,10 @@ def analyze(df: pd.DataFrame) -> None:
             city_sums = city_df.groupby("City")[ ["Activation", "Registration"] ].sum()
             city_sums.columns = ["مجموع التفعيل", "مجموع التسجيل"]
             st.dataframe(city_sums)
+            # Visualization: bar chart of activation and registration by city
+            city_sums_sorted = city_sums.sort_values(by="مجموع التفعيل", ascending=False)
+            st.write("#### رسم بياني: التفعيل والتسجيل حسب المدينة")
+            st.bar_chart(city_sums_sorted)
         else:
             st.write("الملف لا يحتوي على أعمدة 'Activation' و/أو 'Registration'.")
 
@@ -32,7 +36,15 @@ def analyze(df: pd.DataFrame) -> None:
             name_df["Registration"] = pd.to_numeric(name_df["Registration"], errors="coerce").fillna(0)
             name_sums = name_df.groupby("Name")[ ["Activation", "Registration"] ].sum()
             name_sums.columns = ["مجموع التفعيل", "مجموع التسجيل"]
-            st.dataframe(name_sums)
+            # allow user to pick top-N names to visualize (to avoid huge charts)
+            max_n = min(200, len(name_sums))
+            top_n = st.slider("اختر عدد الأسماء الأعلى للعرض", min_value=5, max_value=max_n if max_n>=5 else 5, value=min(20, max_n))
+            # show table for top_n by activation
+            name_sums_by_activation = name_sums.sort_values(by="مجموع التفعيل", ascending=False).head(top_n)
+            st.write(f"#### أعلى {top_n} أسماء حسب مجموع التفعيل")
+            st.dataframe(name_sums_by_activation)
+            st.write("#### رسم بياني: أعلى الأسماء حسب التفعيل والتسجيل")
+            st.bar_chart(name_sums_by_activation)
         else:
             st.write("الملف لا يحتوي على أعمدة 'Activation' و/أو 'Registration'.")
 
